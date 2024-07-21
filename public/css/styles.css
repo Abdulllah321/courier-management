@@ -1,0 +1,19 @@
+.hero-bg {
+  background-image: url(https://shipsy.io/wp-content/uploads/2021/02/Blog-82.jpg);
+  background-size: cover;
+  background-repeat: no-repeat;
+}
+
+.status.active {
+  background-color: rgba(6, 196, 6, 0.3);
+  color: green;
+  padding: 3px 8px;
+  border-radius: 10px;
+}
+
+.status.inactive {
+  color: red;
+  background-color: rgba(255, 0, 0, 0.219);
+  padding: 3px 8px;
+  border-radius: 10px;
+}
