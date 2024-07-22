@@ -1,7 +1,8 @@
 <?php
 session_start();
-include_once '../config/database.php';
-include_once '../includes/functions.php';
+include_once '../../config/database.php';
+include_once '../../includes/functions.php';
+include_once "../create_notification.php";
 redirectIfNotLoggedIn();
 $pageTitle = 'Add Branch';
 
@@ -25,6 +26,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $status = $_POST['status'];
     $branch_manager = $_POST['branch_manager'];
 
+    // Fetch the latest branch ID
+    $query = "SELECT MAX(id) as max_id FROM branches";
+    $stmt = $db->prepare($query);
+    $stmt->execute();
+    $result = $stmt->fetch(PDO::FETCH_ASSOC);
+    $newBranchId = $result['max_id'] + 1;
+
+    // Insert the new branch
     $query = "INSERT INTO branches (branch_name, address, city, state_province, zip_postal_code, country, contact_person, phone_number, email_address, branch_type, status, branch_manager) VALUES (:branch_name, :address, :city, :state_province, :zip_postal_code, :country, :contact_person, :phone_number, :email_address, :branch_type, :status, :branch_manager)";
 
     $stmt = $db->prepare($query);
@@ -43,8 +52,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     if ($stmt->execute()) {
         $success = "Branch added successfully.";
+
+        $message = "A new branch '{$branch_name}' has been added.";
+        $userId = $_SESSION['admin_id'] ?? $_SESSION['agent_id'];
+        $url = "view_branch.php?id={$newBranchId}";
+        try {
+            createNotification($db, $userId, $message, $status = 'unread', $url);
+        } catch (Exception $e) {
+            $error = "Notification error: " . $e->getMessage();
+        }
     } else {
-        $error = "Error: " . $stmt->$error;
+        $error = "Error: " . $stmt->errorInfo()[2];
     }
 }
 ?>
@@ -63,7 +81,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <h1 class="text-3xl font-bold mb-4">Add Branch</h1>
 
         <?php if (!empty($success)) : ?>
-            <div id="toast-success" class="fixed top-4 right-4 bg-green-500 text-white p-4 rounded shadow-lg transition duration-300 transform">
+            <div id="toast-success" class="fixed bottom-4 left-1/2 -translate-x-1/2 bg-green-500 text-white p-4 rounded shadow-lg transition duration-300 transform">
                 <?php echo htmlspecialchars($success); ?>
             </div>
             <script>
@@ -77,7 +95,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             </script>
         <?php endif; ?>
         <?php if (!empty($error)) : ?>
-            <div id="toast-error" class="fixed top-4 right-4 bg-red-500 text-white p-4 rounded shadow-lg transition duration-300 transform">
+            <div id="toast-error" class="fixed top-15 right-4 bg-red-500 text-white p-4 rounded shadow-lg transition duration-300 transform">
                 <?php echo htmlspecialchars($error); ?>
             </div>
             <script>
@@ -150,8 +168,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     <label for="branch_manager" class="block text-gray-700">Branch Manager:</label>
                     <input type="text" name="branch_manager" id="branch_manager" class="w-full px-3 py-2 border border-gray-300 rounded" required>
                 </div>
-                <div class="mt-4">
-                    <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700" id="submitBtn">
+                <div class="mt-4 flex gap-4">
+                    <button type="submit" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-700" id="submitBtn">
                         <span class="submit-text">Add Branch</span>
                         <span class="spinner hidden">
                             <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -160,6 +178,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             </svg>
                         </span>
                     </button>
+                    <a href="manage_branches.php" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-700 flex items-center justify-center">
+                        cancel
+                    </a>
                 </div>
             </div>
         </form>

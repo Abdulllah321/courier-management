@@ -17,14 +17,14 @@ $start = ($page - 1) * $limit;
 $filterStatus = isset($_GET['status']) ? $_GET['status'] : '';
 
 // Fetch total number of records
-$totalQuery = "SELECT COUNT(*) as total FROM branches ";
+$totalQuery = "SELECT COUNT(*) as total FROM branches WHERE deleted = false";
 $totalStmt = $db->prepare($totalQuery);
 $totalStmt->execute();
 $totalRecords = $totalStmt->fetch(PDO::FETCH_ASSOC)['total'];
 $totalPages = ceil($totalRecords / $limit);
 
 // Fetch branches with pagination
-$query = "SELECT * FROM branches LIMIT :start, :limit";
+$query = "SELECT * FROM branches WHERE deleted = false LIMIT :start, :limit";
 $stmt = $db->prepare($query);
 $stmt->bindParam(':start', $start, PDO::PARAM_INT);
 $stmt->bindParam(':limit', $limit, PDO::PARAM_INT);
@@ -50,34 +50,34 @@ $branches = $stmt->fetchAll(PDO::FETCH_ASSOC);
             </a>
         </div>
 
-
-
-        <div class="bg-white shadow-md rounded-lg overflow-x-auto mb-4">
-            <table class="w-full text-left border-collapse">
+        <div class="bg-white shadow-md rounded-lg overflow-hidden mb-6">
+            <table class="w-full text-left border-collapse ">
                 <thead>
                     <tr class="bg-gray-800 text-white">
-                        <th class="py-2 px-4 border-b">Branch Name</th>
-                        <th class="py-2 px-4 border-b">Location</th>
-                        <th class="py-2 px-4 border-b">Status</th>
-                        <th class="py-2 px-4 border-b">Manager</th>
-                        <th class="py-2 px-4 border-b">Actions</th>
+                        <th class="py-3 px-4 border-b">Branch Name</th>
+                        <th class="py-3 px-4 border-b">Location</th>
+                        <th class="py-3 px-4 border-b">Status</th>
+                        <th class="py-3 px-4 border-b">Manager</th>
+                        <th class="py-3 px-4 border-b">Actions</th>
                     </tr>
                 </thead>
                 <tbody id="branchesTableBody">
                     <?php foreach ($branches as $branch) : ?>
                         <tr class="hover:bg-gray-100 branch-row" data-status="<?php echo htmlspecialchars($branch['status']); ?>">
-                            <td class="py-2 px-4 border-b"><?php echo htmlspecialchars($branch['branch_name']); ?></td>
-                            <td class="py-2 px-4 border-b"><?php echo htmlspecialchars($branch['address'] . ', ' . $branch['city'] . ', ' . $branch['state_province'] . ', ' . $branch['zip_postal_code'] . ', ' . $branch['country']); ?></td>
-                            <td class="py-2 px-4 border-b status-cell" data-id="<?php echo $branch['id']; ?>" data-status="<?php echo $branch['status']; ?>">
+                            <td class="py-3 px-4 border-b whitespace-nowrap"><?php echo htmlspecialchars($branch['branch_name']); ?></td>
+                            <td class="py-3 px-4 border-b truncate whitespace-nowrap" title="<?php echo htmlspecialchars($branch['address'] . ', ' . $branch['city'] . ', ' . $branch['state_province'] . ', ' . $branch['zip_postal_code'] . ', ' . $branch['country']); ?>">
+                                <?php echo htmlspecialchars($branch['address'] . ', ' . $branch['city'] . ', ' . $branch['state_province'] . ', ' . $branch['zip_postal_code'] . ', ' . $branch['country']); ?>
+                            </td>
+                            <td class="py-3 px-4 border-b status-cell" data-id="<?php echo $branch['id']; ?>" data-status="<?php echo $branch['status']; ?>">
                                 <span class="status <?php echo htmlspecialchars($branch['status']); ?>">
                                     <?php echo htmlspecialchars(ucfirst($branch['status'])); ?>
                                 </span>
                             </td>
-                            <td class="py-2 px-4 border-b"><?php echo htmlspecialchars($branch['branch_manager']); ?></td>
-                            <td class="py-2 px-4 border-b">
-                                <a href="view_branch.php?id=<?php echo $branch['id']; ?>" class="text-blue-600 hover:underline"><i class="fas fa-eye"></i> View</a>
-                                <a href="edit_branch.php?id=<?php echo $branch['id']; ?>" class="text-blue-600 hover:underline ml-4"><i class="fas fa-edit"></i> Edit</a>
-                                <a href="delete_branch.php?id=<?php echo $branch['id']; ?>" class="text-red-600 hover:underline ml-4"><i class="fas fa-trash-alt"></i> Delete</a>
+                            <td class="py-3 px-4 border-b whitespace-nowrap"><?php echo htmlspecialchars($branch['branch_manager']); ?></td>
+                            <td class="py-3 px-4 border-b flex gap-2 flex-nowrap items-center">
+                                <a href="view_branch.php?id=<?php echo $branch['id']; ?>" class="flex gap-1 flex-nowrap text-blue-600 hover:underline"><i class="fas fa-eye"></i> View</a>
+                                <a href="edit_branch.php?id=<?php echo $branch['id']; ?>" class="flex gap-1 flex-nowrap text-blue-600 hover:underline ml-4"><i class="fas fa-edit"></i> Edit</a>
+                                <a href="#" data-id="<?php echo $branch['id']; ?>" class="flex gap-1 flex-nowrap text-red-600 hover:underline ml-4 delete-branch"><i class="fas fa-trash-alt"></i> Delete</a>
                             </td>
                         </tr>
                     <?php endforeach; ?>
@@ -89,23 +89,24 @@ $branches = $stmt->fetchAll(PDO::FETCH_ASSOC);
         <div class="flex justify-between items-center mt-4">
             <div>
                 <a href="?page=1" class="text-blue-600 hover:underline">&laquo; First</a>
-                <a href="?page=<?php echo max(1, $page - 1); ?>" class="text-blue-600 hover:underline">Prev</a>
+                <a href="?page=<?php echo max(1, $page - 1); ?>" class="text-blue-600 hover:underline">&lt; Prev</a>
             </div>
             <div>
-                <span>Page <?php echo $page; ?> of <?php echo $totalPages; ?></span>
+                <span>Showing <?php echo $start + 1; ?> to <?php echo min($start + $limit, $totalRecords); ?> of <?php echo $totalRecords; ?> items</span>
             </div>
-            <div>
-                <a href="?page=<?php echo min($totalPages, $page + 1); ?>" class="text-blue-600 hover:underline">Next</a>
+            <div class="flex gap-4">
+                <a href="?page=<?php echo min($totalPages, $page + 1); ?>" class="text-blue-600 hover:underline">Next &gt;</a>
                 <a href="?page=<?php echo $totalPages; ?>" class="text-blue-600 hover:underline">Last &raquo;</a>
             </div>
         </div>
+
     </main>
 
     <!-- Custom Confirmation Modal -->
     <div id="confirmationModal" class="fixed inset-0 items-center justify-center bg-gray-600 bg-opacity-50 hidden">
         <div class="bg-white p-6 rounded-lg shadow-lg w-1/3 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-            <h2 class="text-xl font-semibold mb-4">Confirm Status Change</h2>
-            <p id="confirmationMessage" class="mb-4">Are you sure you want to change the status?</p>
+            <h2 class="text-xl font-semibold mb-4">Confirm Deletion</h2>
+            <p id="confirmationMessage" class="mb-4">Are you sure you want to delete this branch?</p>
             <div class="flex justify-end gap-4">
                 <button id="confirmButton" class="bg-blue-500 text-white px-4 py-2 rounded">Yes</button>
                 <button id="cancelButton" class="bg-red-500 text-white px-4 py-2 rounded">No</button>
@@ -113,38 +114,26 @@ $branches = $stmt->fetchAll(PDO::FETCH_ASSOC);
         </div>
     </div>
 
+    <!-- Notification -->
+    <div id="notification" class="fixed bottom-4 right-4 bg-green-500 text-white px-4 py-2 rounded-md shadow-lg hidden">
+        <p id="notificationMessage"></p>
+    </div>
+
+
+    <?php include "../includes/script.php"; ?>
+
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const statusButtons = document.querySelectorAll('button[id^="show"]');
-            const statusCells = document.querySelectorAll('.status-cell');
+            const deleteButtons = document.querySelectorAll('.delete-branch');
             const modal = document.getElementById('confirmationModal');
             const confirmButton = document.getElementById('confirmButton');
             const cancelButton = document.getElementById('cancelButton');
-            let currentCell;
+            const notification = document.getElementById('notification');
+            const notificationMessage = document.getElementById('notificationMessage');
+            let currentBranchId;
 
-            const fetchBranches = () => {
-                const status = Array.from(statusButtons).find(button => button.classList.contains('bg-green-600') || button.classList.contains('bg-red-600'))?.id.replace('show', '').toLowerCase() || '';
-
-                const url = new URL(window.location.href);
-                url.searchParams.set('status', status);
-
-                fetch(url)
-                    .then(response => response.text())
-                    .then(html => {
-                        document.querySelector('main').innerHTML = html;
-                    });
-            };
-
-            statusButtons.forEach(button => {
-                button.addEventListener('click', () => {
-                    statusButtons.forEach(btn => btn.classList.remove('bg-green-600', 'bg-red-600', 'text-white'));
-                    button.classList.add(button.id === 'showActive' ? 'bg-green-600' : 'bg-red-600', 'text-white');
-                    fetchBranches();
-                });
-            });
-
-            const showModal = (cell) => {
-                currentCell = cell;
+            const showModal = (branchId) => {
+                currentBranchId = branchId;
                 modal.classList.remove('hidden');
             };
 
@@ -152,45 +141,70 @@ $branches = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 modal.classList.add('hidden');
             };
 
-            const updateStatusCell = (cell, status) => {
-                const statusSpan = cell.querySelector('span');
-                statusSpan.textContent = status.charAt(0).toUpperCase() + status.slice(1);
-                cell.dataset.status = status;
-
-                // Update the CSS class
-                statusSpan.classList.remove('active', 'inactive');
-                statusSpan.classList.add(status);
+            const showNotification = (message, type = 'success') => {
+                notification.classList.remove('hidden');
+                notification.classList.add(`bg-${type === 'success' ? 'green' : 'red'}-500`);
+                notificationMessage.textContent = message;
+                setTimeout(() => {
+                    notification.classList.add('hidden');
+                }, 3000); // Hide after 3 seconds
             };
 
-            const handleStatusClick = () => {
-                statusCells.forEach(cell => {
-                    cell.addEventListener('dblclick', function() {
-                        showModal(this);
-                    });
+            deleteButtons.forEach(button => {
+                button.addEventListener('click', function(event) {
+                    event.preventDefault();
+                    const branchId = this.getAttribute('data-id');
+                    showModal(branchId);
                 });
-            };
-
-            handleStatusClick();
+            });
 
             confirmButton.addEventListener('click', function() {
-                const currentStatus = currentCell.dataset.status;
-                const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
-
-                fetch('update_branch_status.php', {
+                fetch('delete_branch.php', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/x-www-form-urlencoded',
                         },
-                        body: `id=${currentCell.dataset.id}&status=${newStatus}`,
+                        body: `id=${currentBranchId}`,
                     })
-                    .then(response => response.text())
-                    .then(() => {
-                        updateStatusCell(currentCell, newStatus);
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            showNotification('Branch successfully deleted');
+                            location.reload();
+                        } else {
+                            showNotification('Failed to delete the branch', 'error');
+                        }
                         hideModal();
                     });
             });
 
             cancelButton.addEventListener('click', hideModal);
+        });
+    </script>
+
+    <script>
+        // GSAP animations for table rows
+        gsap.from(".branch-row", {
+            opacity: 0,
+            y: 20,
+            duration: 0.5,
+            stagger: 0.1
+        });
+
+        // Add hover animations
+        document.querySelectorAll(".branch-row").forEach(row => {
+            row.addEventListener('mouseenter', () => {
+                gsap.to(row, {
+                    scale: 1.01,
+                    duration: 0.3
+                });
+            });
+            row.addEventListener('mouseleave', () => {
+                gsap.to(row, {
+                    scale: 1,
+                    duration: 0.3
+                });
+            });
         });
     </script>
 </body>

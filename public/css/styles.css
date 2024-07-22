@@ -17,3 +17,22 @@
   padding: 3px 8px;
   border-radius: 10px;
 }
+
+/* Add this to your CSS file */
+.animate-spin {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.spinner {
+    border: 2px solid transparent;
+    border-radius: 50%;
+    border-top-color: #3490dc;
+    border-right-color: #3490dc;
+    border-bottom-color: #3490dc;
+    border-left-color: transparent;
+}

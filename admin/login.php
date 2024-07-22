@@ -4,6 +4,15 @@ session_start();
 include_once '../config/database.php';
 include_once '../includes/functions.php';
 
+
+
+if (isLoggedIn()) {
+    header("Location: dashboard.php");
+    exit;
+}
+
+
+
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $database = new Database();
     $db = $database->getConnection();

@@ -71,7 +71,8 @@ $pageTitle = 'Admin Dashboard';
             </div>
         </div>
     </main>
-
+    
+    <?php include_once '../includes/script.php'; ?>
     <script>
         // Chart.js Scripts
         const ctx1 = document.getElementById('courierChart').getContext('2d');
@@ -118,7 +119,6 @@ $pageTitle = 'Admin Dashboard';
             }
         });
     </script>
-    <?php include_once '../includes/script.php'; ?>
 </body>
 
 </html>
