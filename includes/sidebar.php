@@ -24,10 +24,10 @@ $current_page = basename($_SERVER['PHP_SELF']);
             </li>
 
             <!-- View All Couriers Item -->
-            <li class="<?php echo $current_page == 'view_courier.php' ? 'bg-gray-700' : ''; ?>">
-                <a href="view_courier.php" class="relative flex items-center text-gray-300 hover:text-white px-4 py-2 rounded-md">
+            <li class="<?php echo $current_page == 'manage_parcels.php' ? 'bg-gray-700' : ''; ?>">
+                <a href="manage_parcels.php" class="relative flex items-center text-gray-300 hover:text-white px-4 py-2 rounded-md">
                     <i class="fas fa-eye mr-3"></i>View All Couriers
-                    <span class="<?php echo $current_page == 'view_courier.php' ? 'bg-white' : 'bg-transparent'; ?> absolute right-0 top-0 rounded-l w-1 h-full"></span>
+                    <span class="<?php echo $current_page == 'manage_parcels.php' ? 'bg-white' : 'bg-transparent'; ?> absolute right-0 top-0 rounded-l w-1 h-full"></span>
                 </a>
             </li>
 

@@ -15,19 +15,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $parcel_id = null;
 
     if ($mode === 'create') {
-        // Insert new parcel
-        $stmt = $conn->prepare("INSERT INTO parcels (sender_first_name, sender_last_name, sender_email, sender_phone, sender_address, receiver_first_name, receiver_last_name, receiver_email, receiver_phone, receiver_address, weight, dimensions, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        // Insert new parcel with sender and receiver IDs
+        $stmt = $conn->prepare("INSERT INTO parcels (sender_id, receiver_id, weight, dimensions, status) VALUES (?, ?, ?, ?, ?)");
         $stmt->execute([
-            $_POST['sender_first_name'],
-            $_POST['sender_last_name'],
-            $_POST['sender_email'],
-            $_POST['sender_phone'],
-            $_POST['sender_address'],
-            $_POST['receiver_first_name'],
-            $_POST['receiver_last_name'],
-            $_POST['receiver_email'],
-            $_POST['receiver_phone'],
-            $_POST['receiver_address'],
+            $_POST['sender_id'],
+            $_POST['receiver_id'],
             $_POST['weight'],
             $_POST['dimensions'],
             $_POST['status']
@@ -36,18 +28,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         // Update existing parcel
         $parcel_id = $_POST['parcel_id'];
-        $stmt = $conn->prepare("UPDATE parcels SET sender_first_name = ?, sender_last_name = ?, sender_email = ?, sender_phone = ?, sender_address = ?, receiver_first_name = ?, receiver_last_name = ?, receiver_email = ?, receiver_phone = ?, receiver_address = ?, weight = ?, dimensions = ?, status = ? WHERE parcel_id = ?");
+        $stmt = $conn->prepare("UPDATE parcels SET sender_id = ?, receiver_id = ?, weight = ?, dimensions = ?, status = ? WHERE parcel_id = ?");
         $stmt->execute([
-            $_POST['sender_first_name'],
-            $_POST['sender_last_name'],
-            $_POST['sender_email'],
-            $_POST['sender_phone'],
-            $_POST['sender_address'],
-            $_POST['receiver_first_name'],
-            $_POST['receiver_last_name'],
-            $_POST['receiver_email'],
-            $_POST['receiver_phone'],
-            $_POST['receiver_address'],
+            $_POST['sender_id'],
+            $_POST['receiver_id'],
             $_POST['weight'],
             $_POST['dimensions'],
             $_POST['status'],
@@ -55,15 +39,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         ]);
     }
 
-    // Generate report
-    $reportContent = generateReport($parcel_id);
+    // Fetch sender and receiver details
+    $stmt = $conn->prepare("SELECT * FROM customers WHERE customer_id = ?");
+
+    // Fetch sender details
+    $stmt->execute([$_POST['sender_id']]);
+    $sender = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    // Fetch receiver details
+    $stmt->execute([$_POST['receiver_id']]);
+    $receiver = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    // Generate report content with sender and receiver details
+    $reportContent = generateReport($parcel_id, $sender, $receiver);
 
     // Send SMS and email to sender and receiver
-    sendSMS($_POST['sender_phone'], "Your parcel has been created. Tracking ID: $parcel_id");
-    sendSMS($_POST['receiver_phone'], "You have a parcel from {$_POST['sender_first_name']} {$_POST['sender_last_name']}. Tracking ID: $parcel_id");
+    sendSMS($sender['phone'], "Your parcel has been created. Tracking ID: $parcel_id");
+    sendSMS($receiver['phone'], "You have a parcel from {$sender['first_name']} {$sender['last_name']}. Tracking ID: $parcel_id");
 
-    sendEmail($_POST['sender_email'], "Parcel Created", "Your parcel has been created. Tracking ID: $parcel_id", $reportContent);
-    sendEmail($_POST['receiver_email'], "Parcel Received", "You have a parcel from {$_POST['sender_first_name']} {$_POST['sender_last_name']}. Tracking ID: $parcel_id", $reportContent);
+    sendEmail($sender['email'], "Parcel Created", "Your parcel has been created. Tracking ID: $parcel_id", $reportContent);
+    sendEmail($receiver['email'], "Parcel Received", "You have a parcel from {$sender['first_name']} {$sender['last_name']}. Tracking ID: $parcel_id", $reportContent);
 
     // Redirect to report page
     header("Location: report.php?parcel_id=$parcel_id");
@@ -71,10 +66,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 // Function to generate the report content
-function generateReport($parcel_id)
+function generateReport($parcel_id, $sender, $receiver)
 {
-    // Fetch parcel details from the database
     global $conn;
+
+    // Fetch parcel details from the database
     $stmt = $conn->prepare("SELECT * FROM parcels WHERE parcel_id = ?");
     $stmt->execute([$parcel_id]);
     $parcel = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -86,4 +82,4 @@ function generateReport($parcel_id)
 
     return $content;
 }
-?>
+?>  

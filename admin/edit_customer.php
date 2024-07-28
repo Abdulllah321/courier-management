@@ -3,6 +3,7 @@ session_start();
 include_once '../config/database.php';
 include_once '../includes/functions.php';
 redirectIfNotLoggedIn();
+$pageTitle = "Customer Edit";
 
 if (!isset($_GET['id'])) {
     $_SESSION['error'] = "Customer ID is required.";
@@ -107,6 +108,25 @@ if (!$customer) {
     </main>
 
     <?php include "../includes/script.php"; ?>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const successMessage = document.getElementById('success-message');
+            const errorMessage = document.getElementById('error-message');
+
+            if (successMessage) {
+                setTimeout(() => {
+                    successMessage.remove();
+                }, 1000); // Remove after 1 second
+            }
+
+            if (errorMessage) {
+                setTimeout(() => {
+                    errorMessage.remove();
+                }, 1000); // Remove after 1 second
+            }
+        });
+    </script>
 </body>
 
 </html>

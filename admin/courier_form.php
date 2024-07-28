@@ -14,7 +14,7 @@ $courier = null;
 if ($mode === 'edit') {
     $courier_id = $_GET['id'];
     // Fetch courier details from the database using $courier_id
-    $stmt = $conn->prepare("SELECT * FROM couriers WHERE courier_id = ?");
+    $stmt = $conn->prepare("SELECT * FROM parcels WHERE parcel_id = ?");
     $stmt->execute([$courier_id]);
     $courier = $stmt->fetch(PDO::FETCH_ASSOC);
 }
