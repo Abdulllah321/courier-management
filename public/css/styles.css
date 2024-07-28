@@ -36,3 +36,12 @@
     border-bottom-color: #3490dc;
     border-left-color: transparent;
 }
+
+
+.session-message-success {
+    background-color: #48bb78; /* Green */
+}
+
+.session-message-error {
+    background-color: #f56565; /* Red */
+}

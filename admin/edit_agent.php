@@ -26,20 +26,11 @@ $agentData = $agentStmt->fetch(PDO::FETCH_ASSOC);
 if (!$agentData) {
     $error = "Agent not found.";
 } else {
-    // Fetch branches for the branch selection dropdown
-    $branchQuery = "
-        SELECT id, branch_name 
-        FROM branches 
-        WHERE id NOT IN (
-            SELECT branch_id 
-            FROM agent_branches
-            WHERE agent_id = :id
-        )
-    ";
+    // Fetch all branches
+    $branchQuery = "SELECT id, branch_name FROM branches";
     $branchStmt = $db->prepare($branchQuery);
-    $branchStmt->bindParam(':id', $agentId);
     $branchStmt->execute();
-    $branches = $branchStmt->fetchAll(PDO::FETCH_ASSOC);
+    $allBranches = $branchStmt->fetchAll(PDO::FETCH_ASSOC);
 
     // Fetch existing branch IDs for the agent
     $branchIdsQuery = "SELECT branch_id FROM agent_branches WHERE agent_id = :id";
@@ -51,7 +42,7 @@ if (!$agentData) {
     if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $username = $_POST['username'];
         $password = $_POST['password'];
-        $branch_ids = $_POST['branch_ids'];
+        $branch_ids = $_POST['branch_ids'] ?? [];
 
         // Check if username already exists
         $checkQuery = "SELECT COUNT(*) FROM agents WHERE username = :username AND id != :id";
@@ -145,15 +136,12 @@ if (!$agentData) {
                 <label for="branch_ids" class="block text-gray-700 font-semibold mb-2">Branches</label>
                 <select id="branch_ids" name="branch_ids[]" class="w-full border border-gray-300 rounded-md p-2"
                     multiple required>
-                        <?php foreach ($branches as $branch): ?>
-                            <option value="<?php echo $branch['id']; ?>"
-                        <?php echo in_array($branch['id'], $selectedBranchIds) ? 'selected' : ''; ?>>
-                        <?php echo htmlspecialchars($branch['branch_name']); ?>
-                            </option>
-                            <?php endforeach; ?>
-                        </select>
-                        <?php foreach ($branches as $branch): echo $branch['id']; endforeach; ?>
-
+                    <?php foreach ($allBranches as $branch): ?>
+                        <option value="<?php echo $branch['id']; ?>" <?php echo in_array($branch['id'], $selectedBranchIds) ? 'selected' : ''; ?>>
+                            <?php echo htmlspecialchars($branch['branch_name']); ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
             </div>
             <button type="submit" id="submit-button"
                 class="bg-red-600 text-white py-2 px-4 rounded-md hover:bg-red-700 transition duration-300 relative">

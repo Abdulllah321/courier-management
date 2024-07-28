@@ -16,10 +16,10 @@ $current_page = basename($_SERVER['PHP_SELF']);
             </li>
 
             <!-- New Courier Item -->
-            <li class="<?php echo $current_page == 'new_courier.php' ? 'bg-gray-700' : ''; ?>">
-                <a href="new_courier.php" class="relative flex items-center text-gray-300 hover:text-white px-4 py-2 rounded-md">
+            <li class="<?php echo $current_page == 'courier_form.php' ? 'bg-gray-700' : ''; ?>">
+                <a href="courier_form.php" class="relative flex items-center text-gray-300 hover:text-white px-4 py-2 rounded-md">
                     <i class="fas fa-box mr-3"></i>New Courier
-                    <span class="<?php echo $current_page == 'new_courier.php' ? 'bg-white' : 'bg-transparent'; ?> absolute right-0 top-0 rounded-l w-1 h-full"></span>
+                    <span class="<?php echo $current_page == 'courier_form.php' ? 'bg-white' : 'bg-transparent'; ?> absolute right-0 top-0 rounded-l w-1 h-full"></span>
                 </a>
             </li>
 
@@ -52,14 +52,6 @@ $current_page = basename($_SERVER['PHP_SELF']);
                 <a href="manage_agents.php" class="relative flex items-center text-gray-300 hover:text-white px-4 py-2 rounded-md">
                     <i class="fas fa-user-tie mr-3"></i>Manage Agents
                     <span class="<?php echo $current_page == 'manage_agents.php' ? 'bg-white' : 'bg-transparent'; ?> absolute right-0 top-0 rounded-l w-1 h-full"></span>
-                </a>
-            </li>
-
-            <!-- Reports Item -->
-            <li class="<?php echo $current_page == 'reports.php' ? 'bg-gray-700' : ''; ?>">
-                <a href="reports.php" class="relative flex items-center text-gray-300 hover:text-white px-4 py-2 rounded-md">
-                    <i class="fas fa-file-alt mr-3"></i>Reports
-                    <span class="<?php echo $current_page == 'reports.php' ? 'bg-white' : 'bg-transparent'; ?> absolute right-0 top-0 rounded-l w-1 h-full"></span>
                 </a>
             </li>
 

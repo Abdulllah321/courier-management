@@ -14,18 +14,12 @@ $page = isset($_GET['page']) ? (int) $_GET['page'] : 1;
 $start = ($page - 1) * $limit;
 
 // Sorting setup
-$sortColumn = isset($_GET['sort']) ? $_GET['sort'] : 'id';
+$sortColumn = isset($_GET['sort']) ? $_GET['sort'] : 'username';
 $sortOrder = isset($_GET['order']) ? $_GET['order'] : 'ASC';
 $sortOrder = ($sortOrder === 'ASC') ? 'ASC' : 'DESC'; // Validate sortOrder
 
 // Search setup
 $search = isset($_GET['search']) ? '%' . $_GET['search'] . '%' : '%';
-
-// Debug: Display the fetched parameters
-echo "Page: $page<br>";
-echo "Sort Column: $sortColumn<br>";
-echo "Sort Order: $sortOrder<br>";
-echo "Search: " . htmlspecialchars($_GET['search'] ?? '') . "<br>";
 
 // Fetch total number of records
 $totalQuery = "SELECT COUNT(DISTINCT a.id) as total 
@@ -55,11 +49,6 @@ $stmt->bindParam(':start', $start, PDO::PARAM_INT);
 $stmt->bindParam(':limit', $limit, PDO::PARAM_INT);
 $stmt->execute();
 $agents = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-// Debug: Display fetched agents data
-echo "<pre>";
-print_r($agents);
-echo "</pre>";
 
 // Fetch branches for the branch selection dropdown
 $branchQuery = "SELECT id, branch_name FROM branches";
@@ -101,7 +90,7 @@ $branches = $branchStmt->fetchAll(PDO::FETCH_ASSOC);
         </div>
 
         <div class="bg-white shadow-md rounded-lg overflow-x-auto mb-4">
-            <table class="w-full text-left border-collapse">
+            <table class="w-full text-left border-collapse overflow-hidden">
                 <thead>
                     <tr class="bg-gray-800 text-white">
                         <th class="py-2 px-4 border-b">
@@ -126,17 +115,19 @@ $branches = $branchStmt->fetchAll(PDO::FETCH_ASSOC);
                         <th class="py-2 px-4 border-b">Actions</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody id="agent-table-body">
                     <?php foreach ($agents as $agent): ?>
-                        <tr class="hover:bg-gray-100">
+                        <tr class="hover:bg-gray-100 agent-row"
+                            data-agent-id="<?php echo htmlspecialchars($agent['id']); ?>">
                             <td class="py-2 px-4 border-b"><?php echo htmlspecialchars($agent['id']); ?></td>
                             <td class="py-2 px-4 border-b"><?php echo htmlspecialchars($agent['username']); ?></td>
                             <td class="py-2 px-4 border-b"><?php echo htmlspecialchars($agent['branches']); ?></td>
                             <td class="py-2 px-4 border-b">
                                 <a href="edit_agent.php?id=<?php echo htmlspecialchars($agent['id']); ?>"
                                     class="text-blue-600 hover:underline"><i class="fas fa-edit"></i> Edit</a>
-                                <a href="delete_agent.php?id=<?php echo htmlspecialchars($agent['id']); ?>"
-                                    class="text-red-600 hover:underline ml-4"><i class="fas fa-trash-alt"></i> Delete</a>
+                                <button class="text-red-600 hover:underline ml-4 delete-button"
+                                    data-agent-id="<?php echo htmlspecialchars($agent['id']); ?>"><i
+                                        class="fas fa-trash-alt"></i> Delete</button>
                             </td>
                         </tr>
                     <?php endforeach; ?>
@@ -163,7 +154,90 @@ $branches = $branchStmt->fetchAll(PDO::FETCH_ASSOC);
             </div>
         </div>
     </main>
+
+    <!-- Confirmation Modal -->
+    <div id="confirmation-modal"
+        class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg shadow-xl p-6 max-w-sm mx-auto">
+            <h2 class="text-xl font-semibold mb-4">Confirm Deletion</h2>
+            <p class="mb-4">Are you sure you want to delete this agent?</p>
+            <div class="flex justify-end gap-4">
+                <button id="confirm-delete-button"
+                    class="bg-red-600 text-white py-2 px-4 rounded-md hover:bg-red-700 transition duration-300">Delete</button>
+                <button id="cancel-delete-button"
+                    class="bg-gray-500 text-white py-2 px-4 rounded-md hover:bg-gray-600 transition duration-300">Cancel</button>
+            </div>
+        </div>
+    </div>
+
     <?php include_once '../includes/script.php'; ?>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const deleteButtons = document.querySelectorAll('.delete-button');
+            const confirmationModal = document.getElementById('confirmation-modal');
+            const confirmDeleteButton = document.getElementById('confirm-delete-button');
+            const cancelDeleteButton = document.getElementById('cancel-delete-button');
+            let agentIdToDelete = null;
+
+            // Function to show the confirmation modal with animation
+            function showConfirmationModal() {
+                gsap.fromTo(confirmationModal, { opacity: 0, scale: 0.7 }, { opacity: 1, scale: 1, duration: 0.5 });
+                confirmationModal.classList.remove('hidden');
+            }
+
+            // Function to hide the confirmation modal with animation
+            function hideConfirmationModal() {
+                gsap.to(confirmationModal, { opacity: 0, scale: 0.7, duration: 0.5, onComplete: () => confirmationModal.classList.add('hidden') });
+            }
+
+            // Event listener for delete buttons
+            deleteButtons.forEach(button => {
+                button.addEventListener('click', function () {
+                    agentIdToDelete = this.getAttribute('data-agent-id');
+                    showConfirmationModal();
+                });
+            });
+
+            // Confirm delete action
+            confirmDeleteButton.addEventListener('click', function () {
+                if (agentIdToDelete) {
+                    window.location.href = `delete_agent.php?id=${agentIdToDelete}`;
+                }
+            });
+
+            // Cancel delete action
+            cancelDeleteButton.addEventListener('click', function () {
+                hideConfirmationModal();
+            });
+
+            const rows = document.querySelectorAll('.agent-row');
+            rows.forEach((row, index) => {
+                gsap.from(row, {
+                    opacity: 0,
+                    y: 20,
+                    duration: 0.5,
+                    delay: index * 0.1
+                });
+            });
+        });
+
+        // Add hover animations
+        document.querySelectorAll(".agent-row").forEach(row => {
+            row.addEventListener('mouseenter', () => {
+                gsap.to(row, {
+                    scale: 1.01,
+                    duration: 0.3
+                });
+            });
+            row.addEventListener('mouseleave', () => {
+                gsap.to(row, {
+                    scale: 1,
+                    duration: 0.3
+                });
+            });
+        });
+    </script>
 </body>
 
 </html>
