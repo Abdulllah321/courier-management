@@ -92,7 +92,7 @@ if (!$parcel) {
                         <option value="Pending" ${statusText.textContent === 'Pending' ? 'selected' : ''}>Pending</option>
                         <option value="In Transit" ${statusText.textContent === 'In Transit' ? 'selected' : ''}>In Transit</option>
                         <option value="Delivered" ${statusText.textContent === 'Delivered' ? 'selected' : ''}>Delivered</option>
-                        <option value="Cancelled" ${statusText.textContent === 'Cancelled' ? 'selected' : ''}>Cancelled</option>
+                        <option value="returned" ${statusText.textContent === 'returned' ? 'selected' : ''}>returned</option>
                     `;
                     this.parentNode.appendChild(select);
                     select.focus();
@@ -137,7 +137,7 @@ if (!$parcel) {
                         return 'bg-blue-200 text-blue-600';
                     case 'Delivered':
                         return 'bg-green-200 text-green-600';
-                    case 'Cancelled':
+                    case 'returned':
                         return 'bg-red-200 text-red-600';
                     default:
                         return '';

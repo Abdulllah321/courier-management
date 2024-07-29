@@ -1,22 +1,32 @@
 <?php
+
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
+
+require '../PHPMailer/src/Exception.php';
+require '../PHPMailer/src/PHPMailer.php';
+require '../PHPMailer/src/SMTP.php';
+
 function sendEmail($to, $subject, $message, $attachmentContent)
 {
-    // Implementation of your email sending logic
-    // You can use an email library like PHPMailer
+    echo $to;
+    echo $subject;
+    echo $message;
+    echo $attachmentContent;
     $mail = new PHPMailer(true);
 
     try {
         // Server settings
         $mail->isSMTP();
-        $mail->Host = 'smtp.example.com'; // Set the SMTP server to send through
+        $mail->Host = 'smtp.gmail.com'; // SMTP server
         $mail->SMTPAuth = true;
-        $mail->Username = 'user@example.com'; // SMTP username
-        $mail->Password = 'secret'; // SMTP password
-        $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
-        $mail->Port = 465;
+        $mail->Username = 'abdullahsufyan2007@gmail.com'; // SMTP username
+        $mail->Password = 'ndcevprxowqgwbok'; // SMTP password or app password
+        $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS; // Use STARTTLS for port 587
+        $mail->Port = 587;
 
         // Recipients
-        $mail->setFrom('from@example.com', 'Mailer');
+        $mail->setFrom('gmt15939@gmail.com', 'Mailer');
         $mail->addAddress($to);
 
         // Attachments
@@ -28,8 +38,10 @@ function sendEmail($to, $subject, $message, $attachmentContent)
         $mail->Body = $message;
 
         $mail->send();
+        echo 'Message has been sent';
     } catch (Exception $e) {
-        error_log("Message could not be sent. Mailer Error: {$mail->ErrorInfo}");
+        echo "Message could not be sent. Mailer Error: {$mail->ErrorInfo}";
     }
 }
+
 ?>

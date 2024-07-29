@@ -8,7 +8,7 @@
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@3.3.0/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="../public/css/styles.css">
     <script src="https://cdn.tailwindcss.com"></script>
-    
+
     <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 
@@ -28,8 +28,6 @@
                 <ul class="flex space-x-4">
                     <li><a href="../admin/login.php" class="hover:bg-red-700 px-3 py-2 rounded">Admin Login</a></li>
                     <li><a href="../agent/login.php" class="hover:bg-red-700 px-3 py-2 rounded">Agent Login</a></li>
-                    <li><a href="../user/register.php" class="hover:bg-red-700 px-3 py-2 rounded">User Register</a></li>
-                    <li><a href="../user/login.php" class="hover:bg-red-700 px-3 py-2 rounded">User Login</a></li>
                 </ul>
             </nav>
         </div>

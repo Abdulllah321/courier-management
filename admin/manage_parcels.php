@@ -85,7 +85,7 @@ $parcels = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                         Pending</option>
                                     <option value="In Transit" <?php echo $parcel['status'] == 'In Transit' ? 'selected' : ''; ?>>In Transit</option>
                                     <option value="Delivered" <?php echo $parcel['status'] == 'Delivered' ? 'selected' : ''; ?>>Delivered</option>
-                                    <option value="Cancelled" <?php echo $parcel['status'] == 'Cancelled' ? 'selected' : ''; ?>>Cancelled</option>
+                                    <option value="returned" <?php echo $parcel['status'] == 'returned' ? 'selected' : ''; ?>>returned</option>
                                 </select>
                             </td>
                             <td class="py-3 px-4 border-b">
@@ -233,7 +233,7 @@ $parcels = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     return ['bg-blue-200', 'text-blue-600', 'px-2', 'py-px', 'rounded-md'];
                 case 'Delivered':
                     return ['bg-green-200', 'text-green-600', 'px-2', 'py-px', 'rounded-md'];
-                case 'Cancelled':
+                case 'returned':
                     return ['bg-red-200', 'text-red-600', 'px-2', 'py-px', 'rounded-md'];
                 default:
                     return [];

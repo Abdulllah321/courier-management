@@ -14,7 +14,7 @@ $database = new Database();
 $db = $database->getConnection();
 
 // Validate the status value
-$validStatuses = ['Pending', 'In Transit', 'Delivered', 'Cancelled'];
+$validStatuses = ['Pending', 'In Transit', 'Delivered', 'returned'];
 if (!in_array($newStatus, $validStatuses)) {
     echo json_encode(['success' => false, 'message' => 'Invalid status value']);
     exit();

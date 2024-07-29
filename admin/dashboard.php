@@ -3,9 +3,54 @@ session_start();
 include_once '../config/database.php';
 include_once '../includes/functions.php';
 redirectIfNotLoggedIn();
-$pageTitle = 'Admin Dashboard';
 
+$database = new Database();
+$db = $database->getConnection();
+$pageTitle = "Admin Dashboard";
+// Fetch total couriers
+$query = "SELECT COUNT(*) as total FROM parcels";
+$stmt = $db->prepare($query);
+$stmt->execute();
+$row = $stmt->fetch(PDO::FETCH_ASSOC);
+$totalCouriers = $row['total'];
+
+// Fetch total customers
+$query = "SELECT COUNT(*) as total FROM customers";
+$stmt = $db->prepare($query);
+$stmt->execute();
+$row = $stmt->fetch(PDO::FETCH_ASSOC);
+$totalCustomers = $row['total'];
+
+// Fetch total agents
+$query = "SELECT COUNT(*) as total FROM agents";
+$stmt = $db->prepare($query);
+$stmt->execute();
+$row = $stmt->fetch(PDO::FETCH_ASSOC);
+$totalAgents = $row['total'];
+
+// Fetch courier statistics
+$query = "SELECT MONTHNAME(delivery_date) as month, COUNT(*) as total FROM parcels WHERE YEAR(delivery_date) = YEAR(CURDATE()) GROUP BY MONTH(delivery_date)";
+$stmt = $db->prepare($query);
+$stmt->execute();
+$courierStats = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+// Fetch customer statistics
+$query = "SELECT MONTHNAME(created_at) as month, COUNT(*) as total FROM customers WHERE YEAR(created_at) = YEAR(CURDATE()) GROUP BY MONTH(created_at)";
+$stmt = $db->prepare($query);
+$stmt->execute();
+$customerStats = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+$response = [
+    'totalCouriers' => $totalCouriers,
+    'totalCustomers' => $totalCustomers,
+    'totalAgents' => $totalAgents,
+    'courierStats' => $courierStats,
+    'customerStats' => $customerStats
+];
+
+echo json_encode($response);
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">
@@ -28,7 +73,7 @@ $pageTitle = 'Admin Dashboard';
                     </div>
                     <div>
                         <h2 class="text-xl font-semibold text-gray-700">Total Couriers</h2>
-                        <p class="text-3xl font-bold text-red-600">1,234</p>
+                        <p id="total-couriers" class="text-3xl font-bold text-red-600">...</p>
                     </div>
                 </div>
             </div>
@@ -40,7 +85,7 @@ $pageTitle = 'Admin Dashboard';
                     </div>
                     <div>
                         <h2 class="text-xl font-semibold text-gray-700">Total Customers</h2>
-                        <p class="text-3xl font-bold text-red-600">567</p>
+                        <p id="total-customers" class="text-3xl font-bold text-red-600">...</p>
                     </div>
                 </div>
             </div>
@@ -52,7 +97,7 @@ $pageTitle = 'Admin Dashboard';
                     </div>
                     <div>
                         <h2 class="text-xl font-semibold text-gray-700">Total Agents</h2>
-                        <p class="text-3xl font-bold text-red-600">12</p>
+                        <p id="total-agents" class="text-3xl font-bold text-red-600">...</p>
                     </div>
                 </div>
             </div>
@@ -71,52 +116,71 @@ $pageTitle = 'Admin Dashboard';
             </div>
         </div>
     </main>
-    
+
     <?php include_once '../includes/script.php'; ?>
     <script>
-        // Chart.js Scripts
-        const ctx1 = document.getElementById('courierChart').getContext('2d');
-        const courierChart = new Chart(ctx1, {
-            type: 'bar',
-            data: {
-                labels: ['January', 'February', 'March', 'April', 'May', 'June'],
-                datasets: [{
-                    label: 'Couriers Delivered',
-                    data: [10, 20, 15, 25, 30, 20],
-                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                    borderColor: 'rgba(255, 99, 132, 1)',
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                scales: {
-                    y: {
-                        beginAtZero: true
-                    }
-                }
-            }
-        });
+        document.addEventListener('DOMContentLoaded', function () {
+            fetch('fetch_dashboard_data.php')
+                .then(response => response.json())
+                .then(data => {
+                    // Update total counts
+                    document.getElementById('total-couriers').textContent = data.totalCouriers;
+                    document.getElementById('total-customers').textContent = data.totalCustomers;
+                    document.getElementById('total-agents').textContent = data.totalAgents;
 
-        const ctx2 = document.getElementById('customerChart').getContext('2d');
-        const customerChart = new Chart(ctx2, {
-            type: 'line',
-            data: {
-                labels: ['January', 'February', 'March', 'April', 'May', 'June'],
-                datasets: [{
-                    label: 'New Customers',
-                    data: [5, 15, 10, 20, 25, 30],
-                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                    borderColor: 'rgba(75, 192, 192, 1)',
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                scales: {
-                    y: {
-                        beginAtZero: true
-                    }
-                }
-            }
+                    // Prepare data for charts
+                    const courierLabels = data.courierStats.map(stat => stat.month);
+                    const courierData = data.courierStats.map(stat => stat.total);
+
+                    const customerLabels = data.customerStats.map(stat => stat.month);
+                    const customerData = data.customerStats.map(stat => stat.total);
+
+                    // Create Courier Chart
+                    const ctx1 = document.getElementById('courierChart').getContext('2d');
+                    const courierChart = new Chart(ctx1, {
+                        type: 'bar',
+                        data: {
+                            labels: courierLabels,
+                            datasets: [{
+                                label: 'Couriers Delivered',
+                                data: courierData,
+                                backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                                borderColor: 'rgba(255, 99, 132, 1)',
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            scales: {
+                                y: {
+                                    beginAtZero: true
+                                }
+                            }
+                        }
+                    });
+
+                    // Create Customer Chart
+                    const ctx2 = document.getElementById('customerChart').getContext('2d');
+                    const customerChart = new Chart(ctx2, {
+                        type: 'line',
+                        data: {
+                            labels: customerLabels,
+                            datasets: [{
+                                label: 'New Customers',
+                                data: customerData,
+                                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                                borderColor: 'rgba(75, 192, 192, 1)',
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            scales: {
+                                y: {
+                                    beginAtZero: true
+                                }
+                            }
+                        }
+                    });
+                });
         });
     </script>
 </body>

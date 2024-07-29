@@ -45,7 +45,7 @@ $customers = $stmt->fetchAll(PDO::FETCH_ASSOC);
         <h1 class="text-3xl font-bold mb-4">Manage Customers</h1>
 
         <div class="mb-4 flex gap-4">
-            <a href="add_customer.php"
+            <a href="courier_form.php"
                 class="inline-block bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 transition duration-300">
                 <i class="fas fa-user-plus mr-2"></i>Add New Customer
             </a>
