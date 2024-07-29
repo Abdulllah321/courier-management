@@ -67,11 +67,6 @@ $pageTitle = "Admin Dashboard";
                 <h2 class="text-xl font-semibold text-gray-700 mb-4">Courier Statistics</h2>
                 <canvas id="courierChart" class="w-full h-64"></canvas>
             </div>
-
-            <div class="bg-white shadow-md rounded-lg p-4">
-                <h2 class="text-xl font-semibold text-gray-700 mb-4">Customer Statistics</h2>
-                <canvas id="customerChart" class="w-full h-64"></canvas>
-            </div>
         </div>
     </main>
 
@@ -156,23 +151,8 @@ $pageTitle = "Admin Dashboard";
                         borderWidth: 1
                     };
                 });
-
-                // Create Customer Chart
-                const ctx2 = document.getElementById('customerChart').getContext('2d');
-                new Chart(ctx2, {
-                    type: 'line',
-                    data: {
-                        labels: days,
-                        datasets: customerDatasets
-                    },
-                    options: {
-                        scales: {
-                            y: {
-                                beginAtZero: true
-                            }
-                        }
-                    }
-                });
+                
+               
             })
             .catch(error => console.error('Error fetching data:', error));
     </script>
