@@ -4,51 +4,8 @@ include_once '../config/database.php';
 include_once '../includes/functions.php';
 redirectIfNotLoggedIn();
 
-$database = new Database();
-$db = $database->getConnection();
 $pageTitle = "Admin Dashboard";
-// Fetch total couriers
-$query = "SELECT COUNT(*) as total FROM parcels";
-$stmt = $db->prepare($query);
-$stmt->execute();
-$row = $stmt->fetch(PDO::FETCH_ASSOC);
-$totalCouriers = $row['total'];
 
-// Fetch total customers
-$query = "SELECT COUNT(*) as total FROM customers";
-$stmt = $db->prepare($query);
-$stmt->execute();
-$row = $stmt->fetch(PDO::FETCH_ASSOC);
-$totalCustomers = $row['total'];
-
-// Fetch total agents
-$query = "SELECT COUNT(*) as total FROM agents";
-$stmt = $db->prepare($query);
-$stmt->execute();
-$row = $stmt->fetch(PDO::FETCH_ASSOC);
-$totalAgents = $row['total'];
-
-// Fetch courier statistics
-$query = "SELECT MONTHNAME(delivery_date) as month, COUNT(*) as total FROM parcels WHERE YEAR(delivery_date) = YEAR(CURDATE()) GROUP BY MONTH(delivery_date)";
-$stmt = $db->prepare($query);
-$stmt->execute();
-$courierStats = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-// Fetch customer statistics
-$query = "SELECT MONTHNAME(created_at) as month, COUNT(*) as total FROM customers WHERE YEAR(created_at) = YEAR(CURDATE()) GROUP BY MONTH(created_at)";
-$stmt = $db->prepare($query);
-$stmt->execute();
-$customerStats = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-$response = [
-    'totalCouriers' => $totalCouriers,
-    'totalCustomers' => $totalCustomers,
-    'totalAgents' => $totalAgents,
-    'courierStats' => $courierStats,
-    'customerStats' => $customerStats
-];
-
-echo json_encode($response);
 ?>
 
 
@@ -85,7 +42,8 @@ echo json_encode($response);
                     </div>
                     <div>
                         <h2 class="text-xl font-semibold text-gray-700">Total Customers</h2>
-                        <p id="total-customers" class="text-3xl font-bold text-red-600">...</p>
+                        <p id="total-customers" class="text-3xl font-bold text-red-600">...
+                        </p>
                     </div>
                 </div>
             </div>
@@ -119,70 +77,107 @@ echo json_encode($response);
 
     <?php include_once '../includes/script.php'; ?>
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            fetch('fetch_dashboard_data.php')
-                .then(response => response.json())
-                .then(data => {
-                    // Update total counts
-                    document.getElementById('total-couriers').textContent = data.totalCouriers;
-                    document.getElementById('total-customers').textContent = data.totalCustomers;
-                    document.getElementById('total-agents').textContent = data.totalAgents;
+        fetch('fetch_dashboard_data.php')
+            .then(response => response.json())
+            .then(data => {
+                // Update total counts
+                document.getElementById('total-couriers').textContent = data.totalCouriers;
+                document.getElementById('total-customers').textContent = data.totalCustomers;
+                document.getElementById('total-agents').textContent = data.totalAgents;
 
-                    // Prepare data for charts
-                    const courierLabels = data.courierStats.map(stat => stat.month);
-                    const courierData = data.courierStats.map(stat => stat.total);
+                // Extract unique days and statuses
+                const currentDate = new Date();
+                const currentMonth = currentDate.getMonth();
+                const currentYear = currentDate.getFullYear();
+                const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+                const days = Array.from({ length: daysInMonth }, (_, i) => (i + 1).toString());
 
-                    const customerLabels = data.customerStats.map(stat => stat.month);
-                    const customerData = data.customerStats.map(stat => stat.total);
+                const courierStatuses = [...new Set(data.courierStats.map(stat => stat.status))];
+                const customerStatuses = [...new Set(data.customerStats.map(stat => stat.status))];
 
-                    // Create Courier Chart
-                    const ctx1 = document.getElementById('courierChart').getContext('2d');
-                    const courierChart = new Chart(ctx1, {
-                        type: 'bar',
-                        data: {
-                            labels: courierLabels,
-                            datasets: [{
-                                label: 'Couriers Delivered',
-                                data: courierData,
-                                backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                                borderColor: 'rgba(255, 99, 132, 1)',
-                                borderWidth: 1
-                            }]
-                        },
-                        options: {
-                            scales: {
-                                y: {
-                                    beginAtZero: true
-                                }
-                            }
-                        }
+                // Define colors for statuses
+                const statusColors = {
+                    'pending': 'rgba(255, 99, 132, 0.5)', // Pink
+                    'delivered': 'rgba(54, 162, 235, 0.5)', // Blue
+                    'returned': 'rgba(255, 206, 86, 0.5)', // Yellow
+                    'in transit': 'rgba(153, 102, 255, 0.5)', // Purple
+                    'default': 'rgba(0, 0, 0, 0.5)' // Black
+                };
+                // Prepare data for courier chart
+                const courierDatasets = courierStatuses.map((status, index) => {
+                    const normalizedStatus = status.trim().toLowerCase();
+                    const statusData = data.courierStats.filter(stat => stat.status === status);
+
+                    const totals = days.map(day => {
+                        const dayData = statusData.find(stat => stat.day === day);
+                        return dayData ? dayData.total : 0;
                     });
 
-                    // Create Customer Chart
-                    const ctx2 = document.getElementById('customerChart').getContext('2d');
-                    const customerChart = new Chart(ctx2, {
-                        type: 'line',
-                        data: {
-                            labels: customerLabels,
-                            datasets: [{
-                                label: 'New Customers',
-                                data: customerData,
-                                backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                                borderColor: 'rgba(75, 192, 192, 1)',
-                                borderWidth: 1
-                            }]
-                        },
-                        options: {
-                            scales: {
-                                y: {
-                                    beginAtZero: true
-                                }
-                            }
-                        }
-                    });
+                    return {
+                        label: status,
+                        data: totals,
+                        backgroundColor: statusColors[normalizedStatus] || statusColors['default'],
+                        borderColor: statusColors[normalizedStatus] || statusColors['default'],
+                        borderWidth: 1
+                    };
                 });
-        });
+
+                // Create Courier Chart
+                const ctx1 = document.getElementById('courierChart').getContext('2d');
+                new Chart(ctx1, {
+                    type: 'bar',
+                    data: {
+                        labels: days,
+                        datasets: courierDatasets
+                    },
+                    options: {
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+
+                // Prepare data for customer chart
+                const customerDatasets = customerStatuses.map((status, index) => {
+                    const statusData = data.customerStats.filter(stat => stat.status === status);
+
+                    const totals = days.map(day => {
+                        const dayData = statusData.find(stat => stat.day === day);
+                        return dayData ? dayData.total : 0;
+                    });
+
+                    return {
+                        label: status,
+                        data: totals,
+                        backgroundColor: statusColors[status] || statusColors['default'],
+                        borderColor: statusColors[status] || statusColors['default'],
+                        borderWidth: 1
+                    };
+                });
+
+                // Create Customer Chart
+                const ctx2 = document.getElementById('customerChart').getContext('2d');
+                new Chart(ctx2, {
+                    type: 'line',
+                    data: {
+                        labels: days,
+                        datasets: customerDatasets
+                    },
+                    options: {
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+            })
+            .catch(error => console.error('Error fetching data:', error));
     </script>
+
+
 </body>
 
 </html>

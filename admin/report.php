@@ -2,7 +2,7 @@
 session_start();
 require '../config/database.php';
 require_once ('../TCPDF/tcpdf.php');
-
+$pageTitle = "Report ";
 if (!isset($_GET['parcel_id'])) {
     echo "Parcel ID is required.";
     exit;

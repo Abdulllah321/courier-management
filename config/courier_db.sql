@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jul 29, 2024 at 02:13 AM
+-- Generation Time: Jul 29, 2024 at 04:36 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.0.30
 
@@ -161,9 +161,11 @@ CREATE TABLE `customers` (
 --
 
 INSERT INTO `customers` (`customer_id`, `first_name`, `last_name`, `email`, `phone`, `address`, `deleted`, `created_at`) VALUES
+('customer_085033', 'Juan Francisco', 'García Flores', 'ejemplo@ejemplo.mx', '5553428400', 'C. Montes Urales 445\r\nPiso 2, Apartamento 1\r\nEntre calle Volcán y calle Montes Celestes, cerca de la oficina de google', 0, NULL),
 ('customer_618289c0-487b-11ef-af40-0a0', 'Jon', 'Doe', 'test@example.us', '6019521325', '1600 Amphitheatre Parkway\r\nApartment 1', 0, NULL),
 ('customer_61828ed6-487b-11ef-af40-0a0', 'João', 'Souza Silva', 'teste@exemplo.us', '3121286800', 'Av. dos Andradas, 3000\r\nAndar 2, Apartamento 1', 0, NULL),
-('customer_7b944fbc3db61be4bf8c9dc4335', 'Abdullah', 'Sufyan', 'abdullahsufyan2007@gmail.com', '03233297166', 'B-56, Petal residency, Glistan-e-johar, Block 9', 0, NULL);
+('customer_7b944fbc3db61be4bf8c9dc4335', 'Abdullah', 'Sufyan', 'abdullahsufyan2007@gmail.com', '03233297166', 'B-56, Petal residency, Glistan-e-johar, Block 9', 0, NULL),
+('customer_f07bea', 'Inez', 'Howe', 'timebopi@mailinator.com', '2663762791', 'Odit aut magna et nu', 0, NULL);
 
 -- --------------------------------------------------------
 
@@ -209,7 +211,8 @@ INSERT INTO `notifications` (`id`, `user_id`, `message`, `status`, `created_at`,
 (22, 1, 'Agent \'Yahya\' has been updated.', 'read', '2024-07-28 17:47:34', 'manage_agents.php'),
 (26, 1, 'Your parcel with tracking ID courier_cf36d7bccb02 has been created.', 'read', '2024-07-28 23:43:02', 'report.php?parcel_id=courier_cf36d7bccb02'),
 (27, 1, 'You have a parcel from Jon Doe with tracking ID courier_cf36d7bccb02.', 'read', '2024-07-28 23:43:02', 'report.php?parcel_id=courier_cf36d7bccb02'),
-(28, 1, 'Your parcel with tracking ID courier_a7f6f039863b has been created.', 'unread', '2024-07-29 00:09:52', 'report.php?parcel_id=courier_a7f6f039863b');
+(28, 1, 'Your parcel with tracking ID courier_a7f6f039863b has been created.', 'read', '2024-07-29 00:09:52', 'report.php?parcel_id=courier_a7f6f039863b'),
+(29, 1, 'Your parcel with tracking ID courier_d4d298 has been created.', 'unread', '2024-07-29 02:16:29', 'report.php?parcel_id=courier_d4d298');
 
 -- --------------------------------------------------------
 
@@ -223,7 +226,7 @@ CREATE TABLE `parcels` (
   `receiver_id` char(36) NOT NULL,
   `weight` decimal(10,2) NOT NULL,
   `dimensions` varchar(50) NOT NULL,
-  `status` enum('Pending','Shipped','Delivered') DEFAULT 'Pending',
+  `status` enum('Pending','In Transit','Delivered','returned') DEFAULT 'Pending',
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `deleted` tinyint(1) DEFAULT 0,
   `delivery_date` date DEFAULT NULL
@@ -237,7 +240,8 @@ INSERT INTO `parcels` (`parcel_id`, `sender_id`, `receiver_id`, `weight`, `dimen
 ('courier_00c750b38da325e91ff119749576', 'customer_618289c0-487b-11ef-af40-0a0', 'customer_7b944fbc3db61be4bf8c9dc4335', 12.00, '1500+300', 'Pending', '2024-07-28 23:37:07', 0, '2024-07-31'),
 ('courier_87c91454b77d', 'customer_618289c0-487b-11ef-af40-0a0', 'customer_7b944fbc3db61be4bf8c9dc4335', 12.00, '1500+300', 'Pending', '2024-07-28 23:38:08', 0, '2024-07-31'),
 ('courier_a7f6f039863b', 'customer_61828ed6-487b-11ef-af40-0a0', 'customer_7b944fbc3db61be4bf8c9dc4335', 2.00, '23', 'Pending', '2024-07-29 00:09:46', 0, '2024-08-02'),
-('courier_cf36d7bccb02', 'customer_618289c0-487b-11ef-af40-0a0', 'customer_7b944fbc3db61be4bf8c9dc4335', 12.00, '1500+300', 'Pending', '2024-07-28 23:43:01', 0, '2024-07-31'),
+('courier_cf36d7bccb02', 'customer_618289c0-487b-11ef-af40-0a0', 'customer_7b944fbc3db61be4bf8c9dc4335', 12.00, '1500+300', 'In Transit', '2024-07-28 23:43:01', 0, '2024-07-31'),
+('courier_d4d298', 'customer_085033', 'customer_f07bea', 20.00, '32', 'Pending', '2024-07-29 02:16:22', 0, '2024-07-29'),
 ('parcel_6182af4c-487b-11ef-af40-0a002', 'customer_618289c0-487b-11ef-af40-0a0', 'customer_61828ed6-487b-11ef-af40-0a0', 12.00, '1500 350', 'Pending', '2024-07-22 22:40:22', 0, NULL);
 
 --
@@ -314,7 +318,7 @@ ALTER TABLE `branches`
 -- AUTO_INCREMENT for table `notifications`
 --
 ALTER TABLE `notifications`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=30;
 
 --
 -- Constraints for dumped tables

@@ -66,14 +66,6 @@ if (!$parcel) {
                 <p><strong>Status:</strong> <span
                         class="status-text"><?php echo htmlspecialchars($parcel['status']); ?></span></p>
             </div>
-
-            <div>
-                <a href="courier_form.php?id=<?php echo $parcel['parcel_id']; ?>"
-                    class="bg-yellow-500 text-white px-4 py-2 rounded-md shadow-md hover:bg-yellow-600">Edit</a>
-                <a href="delete_parcel.php?id=<?php echo $parcel['parcel_id']; ?>"
-                    class="bg-red-500 text-white px-4 py-2 rounded-md shadow-md hover:bg-red-600 ml-4"
-                    onclick="return confirm('Are you sure you want to delete this parcel?')">Delete</a>
-            </div>
         </div>
     </main>
 

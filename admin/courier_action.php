@@ -9,7 +9,7 @@ include "create_notification.php";
 // Function to generate a UUID
 function generateUUID()
 {
-    return bin2hex(random_bytes(6));
+    return bin2hex(random_bytes(3));
 }
 
 redirectIfNotLoggedIn();
