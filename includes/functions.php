@@ -15,3 +15,11 @@ function redirectIfNotLoggedIn()
         exit;
     }
 }
+
+function redirectIfNotLoggedInAsAgent()
+{
+    if (!isLoggedInAsAgent()) {
+        header("Location: login.php");
+        exit;
+    }
+}
