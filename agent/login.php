@@ -28,7 +28,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         // Verify the hashed password
         if (password_verify($password, $row['password'])) {
             $_SESSION['agent_id'] = $row['id'];
-            $_SESSION['username'] = $row['username']; // Store username for the session
+            $_SESSION['agent_username'] = $row['username']; // Store username for the session
 
             header("Location: dashboard.php");
             exit;
