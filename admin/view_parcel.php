@@ -65,6 +65,8 @@ if (!$parcel) {
                 <p><strong>Dimensions:</strong> <?php echo htmlspecialchars($parcel['dimensions']); ?></p>
                 <p><strong>Status:</strong> <span
                         class="status-text"><?php echo htmlspecialchars($parcel['status']); ?></span></p>
+                <p><strong>Delivery Date:</strong> <span
+                        class="delivery-date-text"><?php echo htmlspecialchars($parcel['delivery_date']); ?></span></p>
             </div>
         </div>
     </main>
@@ -73,8 +75,8 @@ if (!$parcel) {
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
+            // Handle status change
             const statusText = document.querySelector('.status-text');
-
             if (statusText) {
                 statusText.addEventListener('dblclick', function () {
                     this.classList.add('hidden');
@@ -113,6 +115,49 @@ if (!$parcel) {
                                     this.classList.add('hidden');
                                     statusText.classList.remove('hidden');
                                     showNotification('Status updated successfully');
+                                } else {
+                                    showNotification(data.message, 'error');
+                                }
+                            });
+                    });
+                });
+            }
+
+            // Handle delivery date change
+            const deliveryDateText = document.querySelector('.delivery-date-text');
+            if (deliveryDateText) {
+                deliveryDateText.addEventListener('dblclick', function () {
+                    this.classList.add('hidden');
+                    const input = document.createElement('input');
+                    input.type = 'date';
+                    input.className = 'delivery-date-input';
+                    input.value = this.textContent;
+                    this.parentNode.appendChild(input);
+                    input.focus();
+
+                    input.addEventListener('blur', function () {
+                        this.classList.add('hidden');
+                        deliveryDateText.classList.remove('hidden');
+                    });
+
+                    input.addEventListener('change', function () {
+                        const parcelId = '<?php echo $parcel['parcel_id']; ?>';
+                        const newDate = this.value;
+
+                        fetch('update_parcel_date.php', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/x-www-form-urlencoded',
+                            },
+                            body: `id=${parcelId}&delivery_date=${newDate}`,
+                        })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    deliveryDateText.textContent = newDate;
+                                    this.classList.add('hidden');
+                                    deliveryDateText.classList.remove('hidden');
+                                    showNotification('Delivery date updated successfully');
                                 } else {
                                     showNotification(data.message, 'error');
                                 }

@@ -1,10 +1,17 @@
+/** @type {import('tailwindcss').Config} */
 module.exports = {
-  purge: ["./public/**/*.html", "./**/*.php"],
-  darkMode: false, // or 'media' or 'class'
+  content: [
+    "./public/**/*.php",
+    "./public/js/**/*.js",
+    "./admin/**/*.php",
+    "./admin/**/*.js",
+    "./agent/**/*.php",
+    "./agent/**/*.js",
+    "./user/**/*.php",
+    "./user/**/*.js",
+    "./includes/**/*.php",
+  ],
   theme: {
-    extend: {},
-  },
-  variants: {
     extend: {},
   },
   plugins: [],

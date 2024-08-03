@@ -2,6 +2,8 @@
 include "../config/database.php";
 include "../includes/functions.php";
 redirectIfNotLoggedIn();
+displaySessionMessages();
+$pageTitle = "Create Courier";
 $mode = "create"; ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -213,6 +215,7 @@ $mode = "create"; ?>
             });
         });
     </script>
+    <?php require "../includes/script.php"; ?>
 </body>
 
 </html>

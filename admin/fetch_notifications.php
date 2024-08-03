@@ -11,7 +11,7 @@ $db = $database->getConnection();
 
 // Check if the user is logged in
 if (!isset($_SESSION['admin_id']) && !isset($_SESSION['agent_id'])) {
-    http_response_code(403); // Forbidden
+    http_response_code(403);
     echo json_encode(['error' => 'User not authenticated']);
     exit;
 }

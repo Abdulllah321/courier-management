@@ -50,17 +50,36 @@ $stmt->bindParam(':month', $selectedMonth);
 $stmt->execute();
 $customerStats = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+// Fetch yearly parcel statistics by status and month
+$query = "SELECT MONTH(delivery_date) as month, status, COUNT(*) as total 
+          FROM parcels 
+          WHERE YEAR(delivery_date) = YEAR(CURDATE())
+          GROUP BY MONTH(delivery_date), status";
+$stmt = $db->prepare($query);
+$stmt->execute();
+$yearlyStats = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+// Fetch branch status
+$query = "SELECT status, COUNT(*) as total 
+          FROM branches 
+          GROUP BY status";
+$stmt = $db->prepare($query);
+$stmt->execute();
+$branchStats = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
 // Prepare the response
 $response = [
     'totalCouriers' => $totalCouriers,
     'totalCustomers' => $totalCustomers,
     'totalAgents' => $totalAgents,
     'courierStats' => $courierStats,
-    'customerStats' => $customerStats
+    'customerStats' => $customerStats,
+    'yearlyStats' => $yearlyStats,
+    'branchStats' => $branchStats
 ];
 
 // Set the response header to JSON
 header('Content-Type: application/json');
 echo json_encode($response);
-exit; // Ensure no further output
+exit; 
 ?>

@@ -58,7 +58,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     sendEmail($sender['email'], "Parcel Pending", "Your parcel is pending and will be processed soon. Tracking ID: $parcel_id", $reportContent);
     sendEmail($receiver['email'], "Pending Parcel Notification", "You have a pending parcel from {$sender['first_name']} {$sender['last_name']}. Tracking ID: $parcel_id", $reportContent);
-
+    addSessionMessage("success", "Your parcel with tracking ID $parcel_id has been created.");
 
     $userId = $_SESSION['admin_id'] ?? $_SESSION['agent_id'];
     createNotification($conn, $userId, "Your parcel with tracking ID $parcel_id has been created.", 'unread', "report.php?parcel_id=$parcel_id");
