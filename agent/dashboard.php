@@ -3,7 +3,7 @@ session_start();
 include_once '../config/database.php';
 include_once '../includes/functions.php';
 redirectIfNotLoggedInAgent();
-    
+
 
 $pageTitle = "Agent Dashboard";
 ?>
@@ -83,7 +83,7 @@ $pageTitle = "Agent Dashboard";
             .then(response => response.json())
             .then(data => {
                 // Update total counts
-                document.getElementById('assigned-couriers').textContent = data.assignedCouriers;
+                document.getElementById('assigned-couriers').textContent = data.assignedParcels;
                 document.getElementById('customers-count').textContent = data.customersCount;
                 document.getElementById('notifications-count').textContent = data.notificationsCount;
 
@@ -94,7 +94,7 @@ $pageTitle = "Agent Dashboard";
                 const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
                 const days = Array.from({ length: daysInMonth }, (_, i) => (i + 1).toString());
 
-                const courierStatuses = [...new Set(data.courierStats.map(stat => stat.status))];
+                const courierStatuses = [...new Set(data.parcelStats.map(stat => stat.status))];
 
                 const statusColors = {
                     'pending': 'rgba(255, 99, 132, 0.5)',
@@ -106,7 +106,7 @@ $pageTitle = "Agent Dashboard";
 
                 const courierDatasets = courierStatuses.map((status, index) => {
                     const normalizedStatus = status.trim().toLowerCase();
-                    const statusData = data.courierStats.filter(stat => stat.status === status);
+                    const statusData = data.parcelStats.filter(stat => stat.status === status);
 
                     const totals = days.map(day => {
                         const dayData = statusData.find(stat => stat.day === day);
@@ -114,7 +114,7 @@ $pageTitle = "Agent Dashboard";
                     });
 
                     return {
-                        label: status,
+                        label: status || 'Unknown', // Handle empty status
                         data: totals,
                         backgroundColor: statusColors[normalizedStatus] || statusColors['default'],
                         borderColor: statusColors[normalizedStatus] || statusColors['default'],
@@ -139,6 +139,7 @@ $pageTitle = "Agent Dashboard";
                 });
             })
             .catch(error => console.error('Error fetching data:', error));
+
     </script>
 
 </body>
