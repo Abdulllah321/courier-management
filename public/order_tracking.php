@@ -43,6 +43,12 @@ try {
         'Delivered' => 'bg-green-600 text-green-200',
         'Returned' => 'bg-red-500 text-red-200'
     ];
+    $current_status_text_colors = [
+        'Pending' => 'text-yellow-600',
+        'In Transit' => 'text-blue-600',
+        'Delivered' => 'text-green-600',
+        'Returned' => 'text-red-600'
+    ];
     // Get the current status
     $current_status = $parcel['status'];
 
@@ -53,27 +59,35 @@ try {
 
 <?php include '../includes/header.php'; ?>
 
-<main class="container mx-auto p-6 bg-white shadow-md rounded-lg mt-10">
-    <section class="mb-6 animate__animated animate__fadeIn animate__delay-1s">
-        <form action="order_tracking.php" method="get"
-            class="flex items-center">
+<main class="container mx-auto p-6 bg-white shadow-md rounded-lg mt-10 ">
+    <section class="mb-6 flex justify-between items-center">
+        <form action="order_tracking.php" method="get" class="flex items-center w-full">
             <input type="text" name="parcel_id" placeholder="Enter Parcel ID"
-                class="border border-gray-300 rounded-l-lg px-4 py-2 w-full lg:w-1/3"
+                class="border border-gray-300 rounded-l-lg px-4 py-2 w-full lg:w-1/3 outline-none focus:!border-red-600"
                 required>
-            <button type="submit"
-                class="bg-red-600 text-white rounded-r-lg px-4 py-2">Track</button>
+            <button type="submit" class="bg-red-600 text-white rounded-r-lg px-4 py-2 scale-[1.05]">Track</button>
         </form>
+
+        <!-- Generate Report Button -->
+        <div class="text-center mt-4">
+            <form action="report.php" method="get">
+                <input type="hidden" name="parcel_id" value="<?php echo htmlspecialchars($parcel_id); ?>">
+                <button type="submit" class="bg-red-500 text-white px-4 py-2 rounded-lg shadow-md whitespace-nowrap">
+                    Generate Report
+                </button>
+            </form>
+        </div>
     </section>
 
     <?php if (isset($error_message)): ?>
-        <section class="animate__animated animate__fadeIn animate__delay-1s">
+        <section class="">
             <div class="bg-red-100 text-red-800 p-4 rounded-lg shadow-sm">
                 <h2 class="text-xl font-bold">Error</h2>
                 <p><?php echo htmlspecialchars($error_message); ?></p>
             </div>
         </section>
     <?php else: ?>
-        <section class="mb-6 animate__animated animate__fadeIn animate__delay-1s">
+        <section class="mb-6 ">
             <h1 class="text-2xl font-bold mb-6">Parcel Tracking</h1>
             <!-- Status Tracker -->
             <div class="relative mb-6">
@@ -87,17 +101,17 @@ try {
                         $color = $status_colors[$status];
                         $icon = $status_icons[$status];
                         $is_current = $status === $current_status ? ($current_status_colors[$status] ?? 'text-gray-700') : 'text-gray-700';
-
-                        $is_last = $status === end($statuses) ? 'gap-6' : '';
+                        $is_current_text = $status === $current_status ? ($current_status_text_colors[$status] ?? 'text-gray-700') : 'text-gray-700';
+                        $is_last = $status === end($statuses) ? 'gap-3 ' : '';
 
                         echo '<div class="flex items-center relative text-center ' . $is_last . '">';
-                        echo '<div class="w-12 h-12 rounded-full ' . $color . ' flex items-center justify-center text-2xl '. $is_current .'">';
+                        echo '<div class="w-12 h-12 rounded-full ' . $color . ' flex items-center justify-center text-2xl ' . $is_current . '">';
                         echo '<i class="' . $icon . '"></i>';
                         echo '</div>';
                         if ($status !== end($statuses)) {
                             echo '<div class="w-12 h-0.5 ' . $is_current . ' bg-gray-300 mx-2 transition-transform duration-300 ease-in-out transform hover:scale-110"></div>';
                         }
-                        echo '<div class="text-sm">' . $status . '</div>';
+                        echo '<div class="text-sm font-bold ' . $is_current_text . '">' . $status . '</div>';
                         echo '</div>';
                     }
                     ?>
@@ -105,24 +119,24 @@ try {
             </div>
 
             <div class="text-center mt-6">
-                <?php if ($current_status === 'Delivered'): ?>
-                    <p class="text-lg font-semibold">Your package has been delivered!</p>
-                <?php else: ?>
-                    <p class="text-lg font-semibold">Your package will be delivered soon. Current status:
-                        <?php echo htmlspecialchars($current_status); ?>.
-                    </p>
-                <?php endif; ?>
+                <?php
+                if ($current_status === 'Delivered') {
+                    echo '<p class="text-xl font-semibold text-green-600">Your package has been delivered!</p>';
+                } elseif ($current_status === 'Returned') {
+                    echo '<p class="text-xl font-semibold text-red-600">Your package has been returned.</p>';
+                } else {
+                    echo '<p class="text-xl font-semibold text-blue-600">Your package will be delivered soon. Current status: <span class="font-bold">' . htmlspecialchars($current_status) . '</span>.</p>';
+                }
+                ?>
             </div>
 
         </section>
 
-        <section
-            class="flex flex-col lg:flex-row lg:justify-between mb-6 animate__animated animate__fadeIn animate__delay-1s">
+        <section>
             <!-- Parcel Info -->
-            <article class="lg:w-1/2 mb-6 lg:mb-0">
+            <article class="mb-6 lg:mb-0">
                 <h2 class="text-xl font-semibold mb-4">Parcel Information</h2>
-                <div
-                    class="bg-gray-50 p-6 rounded-lg shadow-sm">
+                <div class="bg-gray-50 p-6 rounded-lg shadow-sm">
                     <p><span class="font-semibold">Parcel ID:</span> <?php echo htmlspecialchars($parcel['parcel_id']); ?>
                     </p>
                     <p><span class="font-semibold">Weight:</span> <?php echo htmlspecialchars($parcel['weight']); ?> kg</p>
@@ -140,12 +154,11 @@ try {
             </article>
 
             <!-- Customer Info -->
-            <h2 class="text-xl font-semibold mb-4">Customer Information</h2>
+            <h2 class="text-xl font-semibold mb-4 mt-4">Customer Information</h2>
             <article>
                 <div class="flex flex-col lg:flex-row lg:space-x-6 ">
                     <!-- Sender Info -->
-                    <div
-                        class="bg-gray-50 p-6 rounded-lg shadow-sm mb-6 lg:mb-0 lg:w-1/2">
+                    <div class="bg-gray-50 p-6 rounded-lg shadow-sm mb-6 lg:mb-0 lg:w-1/2">
                         <h3 class="text-lg font-semibold mb-2">Sender</h3>
                         <p><span class="font-semibold">Name:</span>
                             <?php echo htmlspecialchars($parcel['sender_first_name'] . ' ' . $parcel['sender_last_name']); ?>
@@ -162,8 +175,7 @@ try {
                     </div>
 
                     <!-- Receiver Info -->
-                    <div
-                        class="bg-gray-50 p-6 rounded-lg shadow-sm lg:w-1/2">
+                    <div class="bg-gray-50 p-6 rounded-lg shadow-sm lg:w-1/2">
                         <h3 class="text-lg font-semibold mb-2">Receiver</h3>
                         <p><span class="font-semibold">Name:</span>
                             <?php echo htmlspecialchars($parcel['receiver_first_name'] . ' ' . $parcel['receiver_last_name']); ?>
@@ -185,4 +197,4 @@ try {
     <?php endif; ?>
 </main>
 
-<?php include '../includes/footer' ?>
+<?php include '../includes/footer.php' ?>

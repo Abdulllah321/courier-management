@@ -18,7 +18,7 @@
 
 </head>
 
-<body class="bg-gray-100">
+<body class="bg-gray-100 scroll-smooth">
     <header class="bg-red-600 text-white shadow-md">
         <div class="container mx-auto px-4 py-3 flex justify-between items-center">
             <div class="text-xl font-bold">

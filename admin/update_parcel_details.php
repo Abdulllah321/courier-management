@@ -26,7 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->bindParam(':id', $id);
         $stmt->bindParam(':weight', $weight);
         $stmt->bindParam(':dimensions', $dimensions);
-
+        
         // Execute the statement
         if ($stmt->execute()) {
             echo json_encode(['success' => true, 'message' => 'Parcel details updated successfully.']);
