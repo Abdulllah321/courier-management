@@ -9,8 +9,6 @@ $pageTitle = "Manage Parcels";
 $database = new Database();
 $db = $database->getConnection();
 
-$agentId = $_SESSION['agent_id'];
-
 // Default sorting
 $validSortColumns = ['parcel_id', 'sender_id', 'receiver_id', 'weight', 'dimensions', 'delivery_date', 'status'];
 $sortColumn = isset($_GET['sort']) ? $_GET['sort'] : 'parcel_id';
@@ -186,7 +184,7 @@ $totalPages = ceil($totalRecords / $perPage);
                                 </td>
                                 <td class="py-3 px-4 border-b">
                                     <?php if ($parcel['status'] !== 'Delivered'): ?>
-                                        <input type="text" class="border rounded p-1 weight"
+                                        <input type="text" class="border-none bg-transparent rounded p-1 weight"
                                             value="<?php echo htmlspecialchars($parcel['weight']); ?>"
                                             data-id="<?php echo $parcel['parcel_id']; ?>" />
                                     <?php else: ?>
@@ -195,7 +193,7 @@ $totalPages = ceil($totalRecords / $perPage);
                                 </td>
                                 <td class="py-3 px-4 border-b">
                                     <?php if ($parcel['status'] !== 'Delivered'): ?>
-                                        <input type="text" class="border rounded p-1 dimensions"
+                                        <input type="text" class="border-none bg-transparent rounded p-1 dimensions"
                                             value="<?php echo htmlspecialchars($parcel['dimensions']); ?>"
                                             data-id="<?php echo $parcel['parcel_id']; ?>" />
                                     <?php else: ?>
@@ -208,10 +206,10 @@ $totalPages = ceil($totalRecords / $perPage);
                                     <span class="status-text"><?php echo htmlspecialchars($parcel['status']); ?></span>
                                 </td>
                                 <td class="py-3 px-4 border-b">
-                                    <button class="edit-btn bg-blue-500 text-white py-1 px-2 rounded"
-                                        data-id="<?php echo $parcel['parcel_id']; ?>">Edit</button>
-                                    <button class="delete-btn bg-red-500 text-white py-1 px-2 rounded"
-                                        data-id="<?php echo $parcel['parcel_id']; ?>">Delete</button>
+                                    <a href="view_parcel.php?id=<?php echo $parcel['parcel_id']; ?>"
+                                        class="text-blue-600 hover:underline">View</a>
+                                    <a href="#" class="text-red-600 hover:underline ml-4 delete-link"
+                                        data-id="<?php echo $parcel['parcel_id']; ?>">Delete</a>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
@@ -219,6 +217,19 @@ $totalPages = ceil($totalRecords / $perPage);
                 </table>
             </div>
 
+            <!-- Custom Deletion Popup -->
+            <div id="deletePopup" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
+                <div class="bg-white p-6 rounded-lg shadow-lg">
+                    <h2 class="text-xl font-bold mb-4">Confirm Deletion</h2>
+                    <p class="mb-4">Are you sure you want to delete this parcel? You can also choose to delete the
+                        associated customer.</p>
+                    <div class="flex justify-end">
+                        <button id="confirmDelete" class="bg-red-500 text-white px-4 py-2 rounded-md">Delete</button>
+                        <button id="cancelDelete"
+                            class="ml-2 bg-gray-300 text-gray-700 px-4 py-2 rounded-md">Cancel</button>
+                    </div>
+                </div>
+            </div>
 
             <div class="mt-4">
                 <div class="pagination">
@@ -241,11 +252,12 @@ $totalPages = ceil($totalRecords / $perPage);
             // Sorting
             $('th[data-sort]').click(function () {
                 var column = $(this).data('sort');
-                var currentOrder = $(this).hasClass('asc') ? 'ASC' : 'DESC'; // Determine current order
-                var order = currentOrder === 'ASC' ? 'DESC' : 'ASC'; // Toggle sort order
+                var currentOrder = $(this).hasClass('asc') ? 'ASC' : 'DESC';
+                var order = currentOrder === 'ASC' ? 'DESC' : 'ASC';
 
                 window.location.href = '?sort=' + column + '&order=' + order + '&search=' + $('#searchInput').val() + '&status=' + $('#statusFilter').val();
             });
+
 
             // Initialize sorting arrows
             function updateSortArrows() {
@@ -319,7 +331,7 @@ $totalPages = ceil($totalRecords / $perPage);
                 var $this = $(this);
                 var currentStatus = $this.find('.status-text').text();
                 var statusOptions = ['Pending', 'In Transit', 'Delivered', 'Returned'];
-                var selectBox = $('<select class="border rounded p-1"></select>');
+                var selectBox = $('<select class="border-none bg-transparent rounded p-1"></select>');
 
                 statusOptions.forEach(function (status) {
                     selectBox.append('<option value="' + status + '" ' + (status === currentStatus ? 'selected' : '') + '>' + status + '</option>');
@@ -386,6 +398,45 @@ $totalPages = ceil($totalRecords / $perPage);
 
                 $(this).addClass(colorClass);
             });
+            const deletePopup = document.getElementById('deletePopup');
+            const confirmDeleteButton = document.getElementById('confirmDelete');
+            const cancelDeleteButton = document.getElementById('cancelDelete');
+            const deleteCustomerCheckbox = document.getElementById('deleteCustomer');
+
+            let deleteId = null;
+
+            document.querySelectorAll('.delete-link').forEach(link => {
+                link.addEventListener('click', function (event) {
+                    event.preventDefault();
+                    deleteId = this.getAttribute('data-id');
+                    deletePopup.classList.remove('hidden');
+                });
+            });
+            confirmDeleteButton.addEventListener('click', function () {
+
+                fetch('delete_parcel.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `id=${deleteId}`,
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            window.location.reload(); // Reload the page after successful deletion
+                        } else {
+                            alert(data.message); // Show error message
+                        }
+                    });
+
+                deletePopup.classList.add('hidden');
+            });
+
+            // Cancel deletion
+            cancelDeleteButton.addEventListener('click', function () {
+                deletePopup.classList.add('hidden');
+            });
 
             gsap.from(".parcel-row", {
                 opacity: 0,
@@ -397,6 +448,7 @@ $totalPages = ceil($totalRecords / $perPage);
         });
 
     </script>
+    <?php include "../includes/script.php" ?>
 </body>
 
 </html>

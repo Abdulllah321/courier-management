@@ -1,8 +1,8 @@
 <?php
 session_start();
-include_once '../../config/database.php';
-include_once '../../includes/functions.php';
-include_once "../create_notification.php";
+include_once '../config/database.php';
+include_once '../includes/functions.php';
+include_once "./create_notification.php";
 redirectIfNotLoggedIn();
 $pageTitle = 'Add Branch';
 
