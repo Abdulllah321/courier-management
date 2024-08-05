@@ -4,7 +4,6 @@ include_once '../config/database.php';
 include_once '../includes/functions.php';
 redirectIfNotLoggedInAgent();
 
-
 $pageTitle = "Agent Dashboard";
 ?>
 
@@ -71,8 +70,7 @@ $pageTitle = "Agent Dashboard";
                 <h2 class="text-xl font-semibold text-gray-700 mb-4">Manage Couriers</h2>
                 <button class="bg-red-600 text-white px-4 py-2 rounded" onclick="location.href='add_courier.php'">Add
                     New Courier</button>
-                <button class="bg-blue-600 text-white px-4 py-2 rounded ml-2"
-                    onclick="location.href='view_couriers.php'">View All Couriers</button>
+                <button class="bg-blue-600 text-white px-4 py-2 rounded ml-2" onclick="location.href='view_couriers.php'">View All Couriers</button>
             </div>
         </div>
     </main>
@@ -92,7 +90,7 @@ $pageTitle = "Agent Dashboard";
                 const currentMonth = currentDate.getMonth();
                 const currentYear = currentDate.getFullYear();
                 const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
-                const days = Array.from({ length: daysInMonth }, (_, i) => (i + 1).toString());
+                const days = Array.from({ length: daysInMonth }, (_, i) => (i + 1).toString().padStart(2, '0'));
 
                 const courierStatuses = [...new Set(data.parcelStats.map(stat => stat.status))];
 
@@ -104,9 +102,9 @@ $pageTitle = "Agent Dashboard";
                     'default': 'rgba(0, 0, 0, 0.5)'
                 };
 
-                const courierDatasets = courierStatuses.map((status, index) => {
+                const courierDatasets = courierStatuses.map(status => {
                     const normalizedStatus = status.trim().toLowerCase();
-                    const statusData = data.parcelStats.filter(stat => stat.status === status);
+                    const statusData = data.parcelStats.filter(stat => stat.status.toLowerCase() === normalizedStatus);
 
                     const totals = days.map(day => {
                         const dayData = statusData.find(stat => stat.day === day);
@@ -114,7 +112,7 @@ $pageTitle = "Agent Dashboard";
                     });
 
                     return {
-                        label: status || 'Unknown', // Handle empty status
+                        label: status,
                         data: totals,
                         backgroundColor: statusColors[normalizedStatus] || statusColors['default'],
                         borderColor: statusColors[normalizedStatus] || statusColors['default'],
@@ -139,7 +137,6 @@ $pageTitle = "Agent Dashboard";
                 });
             })
             .catch(error => console.error('Error fetching data:', error));
-
     </script>
 
 </body>
